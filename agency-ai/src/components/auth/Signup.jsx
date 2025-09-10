@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import assets from "../../assets/assets";
 import { motion } from "motion/react";
 import { supabase } from "./supabaseClient";
+const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
+const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
+if (typeof window !== 'undefined') console.log('[Auth] Signup endpoints', { API_BASE, APP_URL });
 import { AnimatedGridPattern } from "@/components/magicui/animated-grid-pattern";
 import { AuroraText } from "@/components/magicui/aurora-text";
 import { HyperText } from "@/components/magicui/hyper-text";
@@ -19,7 +22,7 @@ const Signup = () => {
     if (password !== confirmPassword) return alert("Passwords do not match");
 
     try {
-      const res = await fetch("http://localhost:4000/signup", {
+  const res = await fetch(`${API_BASE}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -44,7 +47,7 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: "http://localhost:5173/" },
+      options: { redirectTo: APP_URL },
     });
 
     if (error) console.error("Google signup error:", error.message);

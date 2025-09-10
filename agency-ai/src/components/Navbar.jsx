@@ -81,33 +81,54 @@ const Navbar = ({ theme, setTheme }) => {
 
 // ProfileMenu component
 function ProfileMenu() {
+  // normalize helper: convert common stored values to a loadable URL
+  const normalize = (v) => {
+    if (!v) return assets.profile_icon;
+    const s = String(v).trim();
+    // already absolute or data/blob
+    if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('data:') || s.startsWith('blob:')) return s;
+    // protocol-relative //example.com/path
+    if (s.startsWith('//')) return window.location.protocol + s;
+    // absolute path on same origin
+    if (s.startsWith('/')) return (window.location?.origin || '') + s;
+    // fallback: return as-is (could be a full url missing protocol)
+    return s;
+  };
+
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState(localStorage.getItem("user_name") || "Profile");
-  const [userImage, setUserImage] = useState(localStorage.getItem("user_image") || assets.profile_icon);
+  const [userImage, setUserImage] = useState(() => {
+    const v = localStorage.getItem("user_image") || assets.profile_icon;
+    return normalize(v);
+  });
 
   useEffect(() => {
     const updateUserInfo = () => {
-      setUserName(localStorage.getItem("user_name") || "Profile");
-      setUserImage(localStorage.getItem("user_image") || assets.profile_icon);
+      const name = localStorage.getItem("user_name") || "Profile";
+      const rawImage = localStorage.getItem("user_image") || assets.profile_icon;
+      const image = normalize(rawImage);
+      console.log("[Navbar] updateUserInfo -> user_name:", name, "user_image(raw):", rawImage, "normalized:", image);
+      setUserName(name);
+      setUserImage(image);
     };
+    // listen for cross-window storage changes
     window.addEventListener("storage", updateUserInfo);
+    // apply values immediately on mount in case storage was set before
+    try { updateUserInfo(); } catch (e) { /* ignore */ }
     return () => window.removeEventListener("storage", updateUserInfo);
   }, []);
 
   const handleLogout = async () => {
     // Sign out from Supabase
-    if (window.supabase && window.supabase.auth) {
-      await window.supabase.auth.signOut();
-    } else {
-      try {
-        const { supabase } = require('./auth/supabaseClient');
-        await supabase.auth.signOut();
-      } catch (e) {
-        // fallback: ignore if supabase not available
-      }
+    try {
+      await window.supabase?.auth?.signOut();
+    } catch (e) {
+      // ignore sign out errors; proceed to clear client state
+      console.warn('[Navbar] signOut failed', e);
     }
     localStorage.clear();
-    window.location.href = '/';
+    // redirect to login (login is at '/'). Use origin to avoid odd relative redirects.
+    window.location.href = window.location.origin + '/';
   };
 
   return (
@@ -121,6 +142,7 @@ function ProfileMenu() {
         <img
           src={userImage}
           alt="Profile"
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = assets.profile_icon; }}
           className="w-12 h-12 rounded-full cursor-pointer border-2 border-primary shadow-lg hover:scale-105 transition duration-150"
         />
       </button>
@@ -130,6 +152,7 @@ function ProfileMenu() {
             <img
               src={userImage}
               alt="Profile"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = assets.profile_icon; }}
               className="w-full h-full  rounded-full border border-gray-300 dark:border-gray-700 object-cover"
             />
           </div>
