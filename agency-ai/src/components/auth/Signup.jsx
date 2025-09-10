@@ -32,7 +32,7 @@ const Signup = () => {
           localStorage.setItem("user_image", assets.profile_icon);
           window.dispatchEvent(new Event('storage'));
         }
-        navigate("/");
+        navigate("/home");
       } else {
         alert(data.error || "Signup failed");
       }
@@ -56,7 +56,7 @@ const Signup = () => {
           localStorage.setItem("user_name", user.user_metadata?.name || user.email);
           localStorage.setItem("user_image", user.user_metadata?.avatar_url || assets.profile_icon);
           window.dispatchEvent(new Event('storage'));
-          navigate("/");
+          navigate("/home");
         }
       });
     }
