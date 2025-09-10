@@ -3,13 +3,6 @@ import { useNavigate } from "react-router-dom";
 import assets from "../../assets/assets";
 import { motion } from "motion/react";
 import { supabase } from "./supabaseClient";
-// runtime-configurable endpoints (set in Vercel as VITE_API_URL and VITE_APP_URL)
-const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
-const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
-// helpful debug logs when running in production to see which endpoints are used
-if (typeof window !== 'undefined') {
-  console.log('[Auth] API_BASE=', API_BASE, 'APP_URL=', APP_URL);
-}
 import { AnimatedGridPattern } from "@/components/magicui/animated-grid-pattern";
 // ...existing code...
 
@@ -74,7 +67,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-  const res = await fetch(`${API_BASE}/login`, {
+  const res = await fetch("http://localhost:4000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -98,7 +91,7 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: APP_URL },
+      options: { redirectTo: "http://localhost:5173/" },
     });
     if (error) {
       alert("Google login error");

@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import assets from "../../assets/assets";
 import { motion } from "motion/react";
 import { supabase } from "./supabaseClient";
-const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
+// prefer local backend on localhost during development
+const API_BASE = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:4000' : window.location.origin);
 const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
 if (typeof window !== 'undefined') console.log('[Auth] Signup endpoints', { API_BASE, APP_URL });
 import { AnimatedGridPattern } from "@/components/magicui/animated-grid-pattern";
@@ -45,10 +46,7 @@ const Signup = () => {
   };
 
   const handleGoogleSignup = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: APP_URL },
-    });
+    const { data, error } = await supabase.auth.signInWithOAuth({ provider: "google" });
 
     if (error) console.error("Google signup error:", error.message);
     else {
